@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+
+
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vocabulary Game</title>
+<title>Vocabulary Practice</title>
 
 <style>
 body{
@@ -18,24 +20,21 @@ body{
     background:white;
     padding:20px;
     border-radius:15px;
-    box-shadow:0 5px 10px rgba(0,0,0,0.1);
 }
 
 img{
     width:200px;
     height:200px;
-    object-fit:cover;
     border-radius:10px;
 }
 
 button{
-    margin:10px;
-    padding:10px 15px;
+    margin:5px;
+    padding:10px;
     border:none;
     border-radius:10px;
     background:#4CAF50;
     color:white;
-    font-size:16px;
     cursor:pointer;
 }
 
@@ -43,9 +42,9 @@ button:hover{
     background:#45a049;
 }
 
-.score{
-    font-size:18px;
+.result{
     margin-top:10px;
+    font-weight:bold;
 }
 </style>
 </head>
@@ -53,68 +52,49 @@ button:hover{
 <body>
 
 <div class="container">
-    <h2>Vocabulary Practice</h2>
+
+    <h2 id="word">on</h2>
+    <p id="ipa">/ɒn/</p>
 
     <img id="image" src="images/on.jpg">
 
-    <h3 id="word">on</h3>
+    <br>
 
     <button onclick="playAudio()">🔊 Listen</button>
+    <button onclick="startSpeak()">🎤 Speak</button>
+    <button onclick="checkAnswer()">✅ Check</button>
+    <button onclick="nextWord()">⏭️ Next</button>
 
-    <div id="answers"></div>
+    <p id="spokenText"></p>
+    <p class="result" id="result"></p>
 
-    <p class="score">Score: <span id="score">0</span></p>
+    <p>Score: <span id="score">0</span></p>
+
 </div>
 
 <script>
+
 const vocab = [
-    {word:"on", img:"images/on.jpg", audio:"audio/on.mp3"},
-    {word:"in", img:"images/in.jpg", audio:"audio/in.mp3"},
-    {word:"under", img:"images/under.jpg", audio:"audio/under.mp3"},
-    {word:"toy box", img:"images/toybox.jpg", audio:"audio/toybox.mp3"},
-    {word:"wardrobe", img:"images/wardrobe.jpg", audio:"audio/wardrobe.mp3"}
+    {word:"on", ipa:"/ɒn/", img:"images/on.jpg", audio:"audio/on.mp3"},
+    {word:"in", ipa:"/ɪn/", img:"images/in.jpg", audio:"audio/in.mp3"},
+    {word:"under", ipa:"/ˈʌndər/", img:"images/under.jpg", audio:"audio/under.mp3"},
+    {word:"toy box", ipa:"/ˈtɔɪ bɒks/", img:"images/toybox.jpg", audio:"audio/toybox.mp3"},
+    {word:"wardrobe", ipa:"/ˈwɔːdrəʊb/", img:"images/wardrobe.jpg", audio:"audio/wardrobe.mp3"}
 ];
 
 let current = 0;
+let spoken = "";
 let score = localStorage.getItem("score") || 0;
 
 document.getElementById("score").innerText = score;
 
-function loadQuestion(){
+function loadWord(){
     let item = vocab[current];
-
+    document.getElementById("word").innerText = item.word;
+    document.getElementById("ipa").innerText = item.ipa;
     document.getElementById("image").src = item.img;
-    document.getElementById("word").innerText = "What is this?";
-
-    let options = shuffle([...vocab]).slice(0,3);
-    if(!options.includes(item)) options[0] = item;
-
-    let html = "";
-    options.forEach(opt=>{
-        html += `<button onclick="checkAnswer('${opt.word}')">${opt.word}</button>`;
-    });
-
-    document.getElementById("answers").innerHTML = html;
-}
-
-function checkAnswer(answer){
-    if(answer === vocab[current].word){
-        alert("✅ Correct!");
-        score++;
-    }else{
-        alert("❌ Wrong!");
-    }
-
-    localStorage.setItem("score", score);
-    document.getElementById("score").innerText = score;
-
-    current++;
-    if(current >= vocab.length){
-        alert("🎉 Finished! Your score: " + score);
-        current = 0;
-    }
-
-    loadQuestion();
+    document.getElementById("spokenText").innerText = "";
+    document.getElementById("result").innerText = "";
 }
 
 function playAudio(){
@@ -122,11 +102,43 @@ function playAudio(){
     audio.play();
 }
 
-function shuffle(array){
-    return array.sort(()=>Math.random()-0.5);
+function startSpeak(){
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+
+    recognition.start();
+
+    recognition.onresult = function(event){
+        spoken = event.results[0][0].transcript.toLowerCase();
+        document.getElementById("spokenText").innerText = "You said: " + spoken;
+    }
 }
 
-loadQuestion();
+function checkAnswer(){
+    let correct = vocab[current].word.toLowerCase();
+
+    if(spoken.includes(correct)){
+        document.getElementById("result").innerText = "✅ Correct!";
+        score++;
+    }else{
+        document.getElementById("result").innerText = "❌ Try again!";
+    }
+
+    localStorage.setItem("score", score);
+    document.getElementById("score").innerText = score;
+}
+
+function nextWord(){
+    current++;
+    if(current >= vocab.length){
+        alert("🎉 Finished! Your score: " + score);
+        current = 0;
+    }
+    loadWord();
+}
+
+loadWord();
+
 </script>
 
 </body>
