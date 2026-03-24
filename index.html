@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocabulary Game</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#eef3ff;
+    text-align:center;
+}
+
+.container{
+    max-width:400px;
+    margin:20px auto;
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 5px 10px rgba(0,0,0,0.1);
+}
+
+img{
+    width:200px;
+    height:200px;
+    object-fit:cover;
+    border-radius:10px;
+}
+
+button{
+    margin:10px;
+    padding:10px 15px;
+    border:none;
+    border-radius:10px;
+    background:#4CAF50;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#45a049;
+}
+
+.score{
+    font-size:18px;
+    margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Vocabulary Practice</h2>
+
+    <img id="image" src="images/on.jpg">
+
+    <h3 id="word">on</h3>
+
+    <button onclick="playAudio()">🔊 Listen</button>
+
+    <div id="answers"></div>
+
+    <p class="score">Score: <span id="score">0</span></p>
+</div>
+
+<script>
+const vocab = [
+    {word:"on", img:"images/on.jpg", audio:"audio/on.mp3"},
+    {word:"in", img:"images/in.jpg", audio:"audio/in.mp3"},
+    {word:"under", img:"images/under.jpg", audio:"audio/under.mp3"},
+    {word:"toy box", img:"images/toybox.jpg", audio:"audio/toybox.mp3"},
+    {word:"wardrobe", img:"images/wardrobe.jpg", audio:"audio/wardrobe.mp3"}
+];
+
+let current = 0;
+let score = localStorage.getItem("score") || 0;
+
+document.getElementById("score").innerText = score;
+
+function loadQuestion(){
+    let item = vocab[current];
+
+    document.getElementById("image").src = item.img;
+    document.getElementById("word").innerText = "What is this?";
+
+    let options = shuffle([...vocab]).slice(0,3);
+    if(!options.includes(item)) options[0] = item;
+
+    let html = "";
+    options.forEach(opt=>{
+        html += `<button onclick="checkAnswer('${opt.word}')">${opt.word}</button>`;
+    });
+
+    document.getElementById("answers").innerHTML = html;
+}
+
+function checkAnswer(answer){
+    if(answer === vocab[current].word){
+        alert("✅ Correct!");
+        score++;
+    }else{
+        alert("❌ Wrong!");
+    }
+
+    localStorage.setItem("score", score);
+    document.getElementById("score").innerText = score;
+
+    current++;
+    if(current >= vocab.length){
+        alert("🎉 Finished! Your score: " + score);
+        current = 0;
+    }
+
+    loadQuestion();
+}
+
+function playAudio(){
+    let audio = new Audio(vocab[current].audio);
+    audio.play();
+}
+
+function shuffle(array){
+    return array.sort(()=>Math.random()-0.5);
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
